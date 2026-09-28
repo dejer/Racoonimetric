@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#2a1b30">
+<meta name="description" content="Racoonimetric — a 2.5D stealth-sandbox game about a raccoon causing suburban chaos. Plays in any browser, including phones.">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Racoonimetric">
+<title>Racoonimetric</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gochi+Hand&family=Pixelify+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<script type="importmap">{ "imports": { "three": "./js/lib/three.module.min.js" } }</script>
+</head>
+<body>
+<canvas id="game"></canvas>
+<div id="ui">
+  <div id="touch-layer"></div>
+  <div id="joy"><div id="joy-base"></div><div id="joy-knob"></div><div id="joy-mode"></div></div>
+
+  <div id="hud" class="hidden">
+    <div class="hud-tl">
+      <button id="b-todo" class="hbtn" aria-label="Trash-to-Treasure list"><span class="ico ico-list"></span><span class="lbl">List</span><b id="todo-mini">0/16</b></button>
+      <div id="hoard" title="Treasure hoarded in your den"><span class="star">✦</span><b id="hoard-val">0</b><span class="goal">/30</span></div>
+    </div>
+    <div class="hud-tr">
+      <button id="b-wardrobe" class="hbtn" aria-label="Wardrobe"><span class="ico ico-hat"></span><span class="lbl">Style</span></button>
+      <button id="b-pause" class="hbtn sq" aria-label="Pause">❚❚</button>
+    </div>
+    <div id="pad">
+      <button id="b-grab" class="act big" data-btn="grab"><span id="grab-label">Grab</span></button>
+      <button class="act chit" data-btn="chitter">Chitter</button>
+      <button class="act run" data-btn="run">Run</button>
+      <button class="act sneak" data-btn="sneak">Sneak</button>
+    </div>
+    <div id="hidden-badge">hidden</div>
+    <div id="target-label"></div>
+    <div id="keys-help">WASD move · Shift run · C sneak · Space grab/use · Q chitter · Tab list · G style · Esc pause</div>
+  </div>
+  <div id="toasts"></div>
+  <div id="floats"></div>
+
+  <section id="p-title" class="panel show">
+    <div class="title-card">
+      <h1 class="logo">Racoon<span>imetric</span></h1>
+      <p class="sub">a suburban trash heist</p>
+      <canvas id="title-racc" width="128" height="128"></canvas>
+      <div class="title-btns">
+        <button id="b-play" class="big-btn">Play</button>
+        <button id="b-new" class="small-btn hidden">New game</button>
+      </div>
+      <p class="tip">Sound on 🔊 · Landscape recommended · Your progress saves automatically</p>
+    </div>
+  </section>
+
+  <section id="p-todo" class="panel">
+    <div class="notepad">
+      <div class="tape"></div>
+      <h2>Trash-to-Treasure List <small id="todo-count"></small></h2>
+      <ul id="todo-list"></ul>
+      <button class="close-btn" data-close>Close</button>
+    </div>
+  </section>
+
+  <section id="p-wardrobe" class="panel">
+    <div class="card wardrobe">
+      <h2>Wardrobe</h2>
+      <div class="w-body">
+        <div class="w-left"><canvas id="w-preview" width="192" height="192"></canvas><div id="w-info">Pick a look!</div></div>
+        <div class="w-right"><div id="w-tabs"></div><div id="w-grid"></div></div>
+      </div>
+      <button class="close-btn" data-close>Done</button>
+    </div>
+  </section>
+
+  <section id="p-pause" class="panel">
+    <div class="card pause">
+      <h2>Paused</h2>
+      <label class="row">Music <input id="s-music" type="range" min="0" max="1" step="0.05"></label>
+      <label class="row">Sound FX <input id="s-sfx" type="range" min="0" max="1" step="0.05"></label>
+      <div class="row">Graphics <div class="seg" id="s-quality"><button data-q="low">Low</button><button data-q="medium">Med</button><button data-q="high">High</button></div></div>
+      <div class="row">Tilt-shift blur <button class="toggle" id="s-dof"></button></div>
+      <div class="row">Vision cones <button class="toggle" id="s-cones"></button></div>
+      <div class="row btns"><button id="b-fs" class="small-btn">Fullscreen</button><button id="b-reset" class="small-btn danger">Reset progress</button></div>
+      <p class="howto"><b>How to play:</b> sneak around the neighbourhood, steal things and drag them back to your den (the glowing ring under the big oak). Humans chase you if they see you with their stuff — break line of sight, hide in bushes, or lure them away with noise. A gentle push on the stick = sneak.</p>
+      <button class="close-btn" data-close>Resume</button>
+    </div>
+  </section>
+
+  <section id="p-end" class="panel">
+    <div class="card ending">
+      <h2>All hail the<br><span>Trash Monarch!</span></h2>
+      <canvas id="end-racc" width="160" height="160"></canvas>
+      <div id="end-stats"></div>
+      <button class="close-btn" data-close>Keep causing chaos</button>
+    </div>
+  </section>
+  <div id="loading">Loading the neighbourhood…</div>
+</div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
