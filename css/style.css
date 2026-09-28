@@ -156,3 +156,4 @@ body.no-touch #keys-help { display: block; }
   .logo { font-size: clamp(34px, 8vw, 60px); } #title-racc { width: 96px; height: 96px; } .big-btn { font-size: 22px; padding: 8px 40px; }
 }
 @media (max-width: 520px) { .hbtn .lbl { display: none; } .hbtn { padding: 0 9px; } }
+.hbtn b, #hoard b, #end-stats b, #target-label b { font-weight: 400; letter-spacing: 1px; }
