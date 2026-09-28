@@ -440,7 +440,7 @@ export function itemIcon(id, scale = 3) {
 }
 
 // ---------------------------------------------------------------- emotes / fx (16x16)
-export const FX = { alert: 0, question: 1, heart: 2, note: 3, zzz: 4, star: 5, sparkle: 6, anger: 7, drop: 8, stink: 9 };
+export const FX = { alert: 0, question: 1, heart: 2, note: 3, zzz: 4, star: 5, sparkle: 6, anger: 7, drop: 8, stink: 9, bird: 10, birdFly1: 11, birdFly2: 12, bflyA1: 13, bflyA2: 14, bflyB1: 15, bflyB2: 16 };
 export function buildFxSheet() {
   const frames = [];
   const bubble = (c, ch) => {
@@ -462,5 +462,24 @@ export function buildFxSheet() {
   { const a = new PixelArt(16, 16); const r = '#ff3b3b'; a.rect(3, 3, 3, 2, r); a.rect(3, 3, 2, 3, r); a.rect(10, 3, 3, 2, r); a.rect(11, 3, 2, 3, r); a.rect(3, 11, 2, 3, r); a.rect(3, 12, 3, 2, r); a.rect(11, 10, 2, 3, r); a.rect(10, 12, 3, 2, r); a.outline('#ffffff'); frames.push(a); }
   { const a = new PixelArt(16, 16); a.tri(8, 2, 4, 9, 12, 9, '#5ec8ff'); a.circle(8, 10, 4, '#5ec8ff'); a.set(6, 9, '#d8f4ff'); a.outline(OUTLINE); frames.push(a); }
   { const a = new PixelArt(16, 16); a.line(4, 13, 6, 3, '#9bd35a', 1); a.line(8, 13, 10, 3, '#9bd35a', 1); a.line(12, 13, 13, 5, '#9bd35a', 1); frames.push(a); }
+  // sparrow: standing + two flap frames
+  const bird = (wing) => {
+    const a = new PixelArt(16, 16);
+    a.ellipse(7.5, 11, 3.6, 2.6, (x, y, nx, ny) => (ny > 0.3 ? '#f1e3c8' : '#a8784a'));
+    a.circle(10.5, 8.5, 2, '#8a5a34'); a.set(11, 8, '#1a1520'); a.rect(12, 9, 2, 1, '#f0a020');
+    a.rect(3, 9, 2, 1, '#6b4428');
+    if (wing === 0) { a.line(5, 10, 8, 11, '#6b4428'); a.set(7, 14, '#e0a040'); a.set(9, 14, '#e0a040'); }
+    else if (wing === 1) a.poly([[5, 9], [9, 9], [6, 3]], '#6b4428');
+    else a.poly([[5, 11], [9, 11], [6, 15]], '#6b4428');
+    a.outline(OUTLINE); return a;
+  };
+  frames.push(bird(0), bird(1), bird(2));
+  const bfly = (c1, c2, open) => {
+    const a = new PixelArt(16, 16);
+    if (open) { a.ellipse(5, 6, 3, 3.2, c1); a.ellipse(11, 6, 3, 3.2, c1); a.ellipse(5.5, 10.5, 2, 2, c2); a.ellipse(10.5, 10.5, 2, 2, c2); }
+    else { a.ellipse(6.5, 7, 1.4, 3.4, c1); a.ellipse(9.5, 7, 1.4, 3.4, c1); }
+    a.rect(7, 5, 2, 8, '#2a1b30'); a.outline(OUTLINE); return a;
+  };
+  frames.push(bfly('#ffd23f', '#ff9a2a', 1), bfly('#ffd23f', '#ff9a2a', 0), bfly('#9fdcff', '#ff8fb8', 1), bfly('#9fdcff', '#ff8fb8', 0));
   return new Sheet(16, 16, frames);
 }

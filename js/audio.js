@@ -28,6 +28,7 @@ export class AudioEngine {
     if (this.ctx) { if (this.ctx.state !== 'running') this.ctx.resume(); return; }
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) { this.enabled = false; return; }
+    try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (_) { /* older Safari */ }
     const c = (this.ctx = new AC());
     this.master = c.createGain(); this.master.gain.value = 0.9;
     const comp = c.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 4; comp.attack.value = 0.005; comp.release.value = 0.2;
@@ -190,6 +191,30 @@ export class AudioEngine {
     const d = Math.hypot(dx, dz);
     return { g: clamp(1 - d / range, 0, 1) ** 1.5, pan: clamp(dx / 9, -0.9, 0.9) };
   }
+  // Goose-Game-ish gibberish: formant-filtered syllables with mood-shaped pitch
+  voice(kind, mood, x, z) {
+    if (!this.ctx || this.ctx.state !== 'running') return;
+    const s = this.spatial(x, z, 22);
+    if (s.g < 0.03) return;
+    const c = this.ctx, now = c.currentTime + 0.01;
+    const base = kind === 'dad' ? 112 : 158;
+    const n = { hm: 1, hey: 2, grr: 3, yay: 3, whoa: 2, bleh: 2 }[mood] || 2;
+    const VOW = [[800, 1200], [400, 2000], [500, 900], [650, 1700], [300, 2300]];
+    for (let i = 0; i < n; i++) {
+      const t = now + i * 0.12, last = i === n - 1;
+      const dur = (mood === 'hey' || mood === 'whoa') && last ? 0.3 : mood === 'hm' ? 0.34 : 0.1;
+      let f0 = base * (mood === 'hey' ? 1.25 + i * 0.3 : mood === 'grr' ? 0.75 : mood === 'yay' ? 1.3 + (i % 2) * 0.3 : mood === 'whoa' ? 1.6 - i * 0.3 : 1 + Math.random() * 0.3);
+      const o = c.createOscillator(); o.type = 'sawtooth'; o.frequency.setValueAtTime(f0, t);
+      const f1 = mood === 'hm' ? f0 * 1.35 : mood === 'hey' && last ? f0 * 1.4 : mood === 'grr' ? f0 * 0.8 : mood === 'whoa' ? f0 * 0.6 : f0 * (0.9 + Math.random() * 0.25);
+      o.frequency.linearRampToValueAtTime(f1, t + dur);
+      const g = c.createGain(); this.env(g, t, 0.015, 0.22 * s.g, dur + 0.05);
+      const [a, b] = VOW[mood === 'hm' ? 2 : (Math.random() * VOW.length) | 0];
+      for (const [f, q, v] of [[a, 6, 1], [b, 8, 0.6]]) { const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = f; bp.Q.value = q; const gv = c.createGain(); gv.gain.value = v * 3; o.connect(bp); bp.connect(gv); gv.connect(g); }
+      this.out(g, s.pan, this.sfx);
+      o.start(t); o.stop(t + dur + 0.08);
+    }
+  }
+  flutter(x, z) { if (!this.ctx) return; const s = this.spatial(x, z, 16); if (s.g < 0.03) return; const t = this.ctx.currentTime; for (let i = 0; i < 6; i++) this.noise(t + i * 0.045, 0.03, 0.12 * s.g, 'bandpass', 1800, s.pan, this.sfx, 2); }
   // ------------------------------------------------------------------ sound effects
   play(name, x = null, z = null, vol = 1) {
     if (!this.ctx || this.ctx.state !== 'running') return;

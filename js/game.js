@@ -8,6 +8,7 @@ import { buildItemSheet, buildFxSheet } from './sprites.js';
 import { Raccoon, Human, Dog, Item, Particles, spriteTex } from './actors.js';
 import { AudioEngine } from './audio.js';
 import { Input } from './input.js';
+import { Critters } from './critters.js';
 import { OBJECTIVES, ACCESSORIES, FUR_LIST, THRONE_GOAL } from './data.js';
 import { clamp, damp, dist, rand, isTouchDevice } from './util.js';
 
@@ -45,6 +46,7 @@ export class Game {
     [this.raccoon.x, this.raccoon.z] = this.W.starts.raccoon;
     this.humans = [new Human(this, 'gardener'), new Human(this, 'dad')];
     this.dog = new Dog(this);
+    this.critters = new Critters(this);
     this.items = this.W.spawns.map((sp) => new Item(this, sp.id, sp));
     this.rings = []; this.timers = []; this.time = 0; this.shake = 0; this.tunnelCD = 0; this.hoardValue = 0;
     this.showCones = this.save.settings.cones; this.target = null; this.mode = 'title';
@@ -334,6 +336,7 @@ export class Game {
     }
     for (const h of this.humans) h.update(dt);
     this.dog.update(dt);
+    this.critters.update(dt);
     for (const it of this.items) it.update(dt);
     this.checkDen();
     if (R.hidden && R.hide && R.hide.type === 'circle' && (this.humans.some((h) => ['chase', 'search', 'investigate', 'shoo'].includes(h.state) && dist(h.x, h.z, R.x, R.z) < 9) || this.dog.state === 'chase')) this.complete('hide_bush');

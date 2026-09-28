@@ -367,7 +367,7 @@ export class Human extends SpriteActor {
     if (this.state === 'turnoff') return;
     if (!this.inTerr(x, z, 1.5)) { if (this.state === 'route') { this.lookAt(x, z); this.emote.show('question', 1); } return; }
     if (['route', 'investigate', 'search', 'retrieve'].includes(this.state)) {
-      this.setState('investigate', { x, z }); this.emote.show('question', 1.6); g.audio.play('question', this.x, this.z, 0.7);
+      this.setState('investigate', { x, z }); this.emote.show('question', 1.6); g.audio.voice(this.kind, 'hm', this.x, this.z);
     }
   }
   slip(it) {
@@ -375,7 +375,7 @@ export class Human extends SpriteActor {
     if (this.hold) this.putDown(this.hold, false);
     this.setState('slip'); this.slipCD = 5; this.aware = 0;
     it.vy = 4; it.vx = this.facing * 2.5; it.restY = 0;
-    g.audio.play('slip', this.x, this.z); g.particles.burst('stars', this.x, 1.0, this.z, 10); this.emote.show('star', 2.4);
+    g.audio.play('slip', this.x, this.z); g.audio.voice(this.kind, 'whoa', this.x, this.z); g.particles.burst('stars', this.x, 1.0, this.z, 10); this.emote.show('star', 2.4);
     g.complete('slip_banana'); g.stats.slips = (g.stats.slips || 0) + 1;
   }
   update(dt) {
@@ -392,8 +392,8 @@ export class Human extends SpriteActor {
     this.shooCD -= dt;
     const interruptible = ['route', 'investigate', 'search', 'turnoff', 'retrieve', 'rewear', 'hatoff'].includes(this.state);
     if (interruptible && this.aware >= 1) {
-      if (guilty) { this.setState('react'); this.emote.show('alert', 1.4); g.audio.play('alert', this.x, this.z); }
-      else if (intrude && this.shooCD <= 0 && ['route', 'investigate', 'search'].includes(this.state)) { this.setState('shoo'); this.shooCD = 7; this.emote.show('anger', 2.5); g.audio.play('grumble', this.x, this.z); }
+      if (guilty) { this.setState('react'); this.emote.show('alert', 1.4); g.audio.play('alert', this.x, this.z); g.audio.voice(this.kind, 'hey', this.x, this.z); }
+      else if (intrude && this.shooCD <= 0 && ['route', 'investigate', 'search'].includes(this.state)) { this.setState('shoo'); this.shooCD = 7; this.emote.show('anger', 2.5); g.audio.voice(this.kind, 'grr', this.x, this.z); }
     }
     // running devices are a persistent annoyance: go deal with them when free
     const calm = ['route', 'investigate', 'search'].includes(this.state);
@@ -418,7 +418,7 @@ export class Human extends SpriteActor {
       if (this.wet <= 0 && !['slip', 'getup'].includes(this.state)) {
         this.wet = 10; if (this.kind === 'gardener') g.complete('soak_gardener');
         const d = this.state === 'turnoff' ? this.data : null;
-        this.setState('wet', { next: d }); this.emote.show('drop', 1.6); g.audio.play('splash', this.x, this.z);
+        this.setState('wet', { next: d }); this.emote.show('drop', 1.6); g.audio.play('splash', this.x, this.z); g.audio.voice(this.kind, 'bleh', this.x, this.z);
       }
     }
     if (this.wet > 0) { this.wet -= dt; if (Math.random() < dt * 10) g.particles.spawn(this.x + rand(-0.3, 0.3), 1.2 + rand(0, 0.5), this.z, 0, -1, 0, '#7fd8f5', 0.06, 0.5); }
@@ -473,7 +473,7 @@ export class Human extends SpriteActor {
       case 'react': this.lookAt(R.x, R.z); if (this.st > 0.4) this.setState('chase', { lost: 0 }); break;
       case 'chase': {
         if (this.vis > 0) { d.lost = 0; this.lastSeen = [R.x, R.z]; } else d.lost += dt;
-        if (R.inDen || !this.inTerr(R.x, R.z, 4) || this.st > 14) { this.setState('fume'); this.emote.show('anger', 1.5); break; }
+        if (R.inDen || !this.inTerr(R.x, R.z, 4) || this.st > 14) { this.setState('fume'); this.emote.show('anger', 1.5); g.audio.voice(this.kind, 'grr', this.x, this.z); break; }
         if (d.lost > 1.8) { this.setState('search', { x: this.lastSeen[0], z: this.lastSeen[1] }); this.emote.show('question', 1.5); break; }
         const [tx, tz] = this.vis > 0 ? [R.x, R.z] : this.lastSeen;
         this.goTo(tx, tz, 4.5, dt);
@@ -513,7 +513,7 @@ export class Human extends SpriteActor {
       }
       case 'dance': {
         this.facing = Math.sin(this.st * 5) > 0 ? 1 : -1;
-        if (this.st < 0.1) g.complete('make_dance');
+        if (this.st < 0.1) { g.complete('make_dance'); g.audio.voice(this.kind, 'yay', this.x, this.z); }
         if (Math.random() < dt * 3) g.particles.burst('notes', this.x, 2, this.z, 1);
         if (!g.W.radio.on) this.setState('route');
         else if (this.st > 6) this.setState('turnoff', { dev: 'radio' });
