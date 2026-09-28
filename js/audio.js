@@ -35,7 +35,7 @@ export class AudioEngine {
     this.master.connect(comp); comp.connect(c.destination);
     this.reverb = c.createConvolver(); this.reverb.buffer = this.impulse(1.8, 2.8);
     const rv = c.createGain(); rv.gain.value = 0.5; this.reverb.connect(rv); rv.connect(this.master);
-    this.music = c.createGain(); this.music.gain.value = this.musicVol * 0.55; this.music.connect(this.master);
+    this.music = c.createGain(); this.music.gain.value = this.musicVol * 0.9; this.music.connect(this.master);
     this.musicRev = c.createGain(); this.musicRev.gain.value = 0.22; this.music.connect(this.musicRev); this.musicRev.connect(this.reverb);
     this.sfx = c.createGain(); this.sfx.gain.value = this.sfxVol; this.sfx.connect(this.master);
     const sr = c.createGain(); sr.gain.value = 0.12; this.sfx.connect(sr); sr.connect(this.reverb);
@@ -52,7 +52,7 @@ export class AudioEngine {
     for (let ch = 0; ch < 2; ch++) { const d = b.getChannelData(ch); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay); }
     return b;
   }
-  setMusic(v) { this.musicVol = v; if (this.ctx) this.music.gain.setTargetAtTime(v * 0.55, this.ctx.currentTime, 0.1); }
+  setMusic(v) { this.musicVol = v; if (this.ctx) this.music.gain.setTargetAtTime(v * 0.9, this.ctx.currentTime, 0.1); }
   setSfx(v) { this.sfxVol = v; if (this.ctx) this.sfx.gain.setTargetAtTime(v, this.ctx.currentTime, 0.1); }
   suspend() { this.ctx?.suspend(); }
   resume() { this.ctx?.resume(); }
@@ -62,7 +62,7 @@ export class AudioEngine {
     const t = this.ctx.currentTime, L = this.L;
     L.mel.gain.setTargetAtTime(level >= 1 ? 0.55 : 0, t, 0.4);
     L.celesta.gain.setTargetAtTime(level === 0 ? 0.35 : 0, t, 0.4);
-    L.chase.gain.setTargetAtTime(level >= 2 ? 0.8 : 0, t, 0.15);
+    L.chase.gain.setTargetAtTime(level >= 2 ? 1.1 : 0, t, 0.15);
     L.comp.gain.setTargetAtTime(level >= 2 ? 0.3 : 0.5, t, 0.3);
   }
   // ------------------------------------------------------------------ scheduler
